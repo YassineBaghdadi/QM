@@ -431,22 +431,45 @@ class NewQalif(QtWidgets.QWidget):
 
     def finish(self):
         print(self.ansers)
-        self.cur.execute(f"""insert into qualification(iduser, idagent, qdate, reason) values(
-                    {self.ansers["user"]},
-                    {self.ansers["agent"]},
-                    "{datetime.datetime.today().strftime('%d-%m-%Y')}",
-                    {self.ansers["callReason"]}
-        
-        )""")
-        self.cnx.commit()
-        self.cur.execute(f'''select max(id) from qualification ''')
-        qid = self.cur.fetchone()[0]
+        messedQ = []
+
+        self.cur.execute("select id from qalif where importent = 1")
+        importentQ = [int(i[0]) for i in self.cur.fetchall()]
+
+        ansewred = []
         for q in self.ansers["qlf"]:
             for k in q.keys():
-                self.cur.execute(f"""insert into rslt(idq, r, idqlf, note) values (
-                            {k}, "{q[k]["ans"]}", {qid}, "{q[k]["note"]}"
-                    )""")
-                self.cnx.commit()
+                ansewred.append(int(k))
+
+        for i in importentQ:
+            if i not in ansewred:
+                messedQ.append(i)
+
+        if messedQ:
+            qr = f'select qname from qalif where id in {tuple(messedQ)}'
+            self.cur.execute(qr)
+            messedQN = [f"{i[0]}\n" for i in self.cur.fetchall()]
+
+            msg = f'''\nthose Qualifications are important to fill :\n {" ".join(messedQN)}'''
+            QtWidgets.QMessageBox.about(self, "you have to complete all the important elements ", msg)
+
+        else:
+            self.cur.execute(f"""insert into qualification(iduser, idagent, qdate, reason) values(
+                        {self.ansers["user"]},
+                        {self.ansers["agent"]},
+                        "{datetime.datetime.today().strftime('%d-%m-%Y')}",
+                        {self.ansers["callReason"]}
+            
+            )""")
+            self.cnx.commit()
+            self.cur.execute(f'''select max(id) from qualification ''')
+            qid = self.cur.fetchone()[0]
+            for q in self.ansers["qlf"]:
+                for k in q.keys():
+                    self.cur.execute(f"""insert into rslt(idq, r, idqlf, note) values (
+                                {k}, "{q[k]["ans"]}", {qid}, "{q[k]["note"]}"
+                        )""")
+                    self.cnx.commit()
 
 
 
