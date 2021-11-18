@@ -127,6 +127,11 @@ class RSLT(QtWidgets.QWidget):
     #         cnx.close()
     #
 
+    def closeEvent(self, event):
+        self.lgn = Login()
+        self.lgn.close()
+        self.close()
+
     def openNewR(self):
         self.nr = NewQalif(str(self.ag.currentText()).split('-')[0])
         self.nr.show()
@@ -145,7 +150,7 @@ class RSLT(QtWidgets.QWidget):
             if c:
                 print("$"*100)
                 print(c)
-                self.qlf = [str(i[0]) for i in c] if len(c) > 1 else c[0]
+                self.qlf = [str(i[0]) for i in c] if len(c) > 1 else [str(c[0][0])]
                 print(self.qlf)
                 self.qlfs.setEnabled(True)
                 self.qlfs.addItems(self.qlf)
@@ -153,6 +158,7 @@ class RSLT(QtWidgets.QWidget):
             self.newR.setEnabled(False)
             self.qlfs.clear()
             self.qlfs.setEnabled(False)
+            self.tableWidget.clear()
 
         self.refresh()
         cur.close()
@@ -185,31 +191,75 @@ class RSLT(QtWidgets.QWidget):
             self.tableWidget.setEnabled(False)
         else:
             try:
-                self.tableWidget.setEnabled(True)
+                if self.ag.currentIndex() != 0 and self.qlfs.currentText():
+                    self.tableWidget.setEnabled(True)
 
-                cnx = conn()
-                cur = cnx.cursor()
-                qq = f"""select q.qname, r.r, qq.qdate, u.fullname from qalif q inner join rslt r on r.idq = q.id inner join qualification qq on r.idqlf = qq.id inner join users u on qq.iduser = u.id where qq.idagent = {str(self.ag.currentText()).split('-')[0]} and qq.id like "{self.qlfs.currentText()}";"""
-                print(f'{"#"*100}\n{qq}')
-                cur.execute(qq)
+                    cnx = conn()
+                    cur = cnx.cursor()
+                    qq = f"""select q.qname, r.r from qalif q inner join rslt r on r.idq = q.id inner join qualification qq on r.idqlf = qq.id inner join users u on qq.iduser = u.id where qq.idagent = {str(self.ag.currentText()).split('-')[0]} and qq.id = {self.qlfs.currentText()};"""
+                    print(f'{"#"*100}\n{qq}')
+                    cur.execute(qq)
 
-                data = cur.fetchall()
+                    data = cur.fetchall()
+                    if data:
+                        infos = []
+                        cur.execute(f'''select r, idq from rslt where idqlf = {self.qlfs.currentText()}''')
+                        output = cur.fetchall()
+                        allRsltPoints = [float(i[0]) for i in output]
+                        # infos.append(allRsltPoints)
+                        ttlGain = sum(allRsltPoints)
+                        infos.append(ttlGain)
+                        allQansewred = [i[1] for i in output]
+                        cur.execute(f'''select ranger from qalif where id in {tuple(allQansewred)}''')
+                        ttlEligible = sum([float(str(i[0]).split(".")[1]) for i in cur.fetchall()])
+                        infos.append(ttlEligible)
 
-                self.tableWidget.clear()
-                self.tableWidget.setColumnCount(len(data[0]))
-                self.tableWidget.setRowCount(len(data))
-                self.tableWidget.setHorizontalHeaderLabels("Qualification.Result.Qualifier.Date".split('.'))
-                [self.tableWidget.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch) for i in range(len(data[0]))]
 
-                for r in range(len(data)):
+                        saccomPercentage = f"{str(round((ttlGain/ttlEligible) * 100, 2))}%"
+                        infos.append(saccomPercentage)
+                        qu = f'''select cr.reason, u.fullname, qq.qdate from callReasons cr inner join qualification qq on qq.reason = cr.id inner join users u on qq.iduser = u.id where qq.id = {self.qlfs.currentText()}'''
+                        print(qu)
+                        cur.execute(qu)
+                        dt = cur.fetchone()
+                        reason = dt[0]
+                        infos.append(reason)
+                        qualifier = dt[1]
+                        infos.append(qualifier)
+                        date = dt[2]
+                        infos.append(date)
 
-                    for c in range(data[0]):
-                        self.tableWidget.setItem(r,c, QtWidgets.QTableWidgetItem(str(data[r][c])))
-                cur.close()
-                cnx.close()
-            except Exception as e:
-                print(e)
-                self.tableWidget.setEnabled(False)
+                        self.tableWidget_2.clear()
+                        self.tableWidget_2.setColumnCount(len(infos))
+                        self.tableWidget_2.setRowCount(1)
+                        self.tableWidget_2.setHorizontalHeaderLabels("Total Gain.Total Eligible.Saccom Percentage.Call Reason.User Qualifier.Qualification Date".split('.'))
+                        [self.tableWidget_2.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch) for i in range(len(infos))]
+
+                        [self.tableWidget_2.setItem(0,c, QtWidgets.QTableWidgetItem(str(infos[c])))for c in range(len(infos))]
+
+
+                        self.tableWidget.clear()
+                        self.tableWidget.setColumnCount(len(data[0]))
+                        self.tableWidget.setRowCount(len(data))
+                        self.tableWidget.setHorizontalHeaderLabels("Qualification.Result".split('.'))
+                        [self.tableWidget.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch) for i in range(len(data[0]))]
+
+                        for r in range(len(data)):
+
+                            for c in range(len(data[0])):
+                                self.tableWidget.setItem(r,c, QtWidgets.QTableWidgetItem(str(data[r][c])))
+                    else:
+                        self.tableWidget.clear()
+                    cur.close()
+                    cnx.close()
+                else:
+                    self.tableWidget.clear()
+                    self.tableWidget_2.clear()
+            except :
+                    self.tableWidget.clear()
+                    self.tableWidget_2.clear()
+            # except Exception as e:
+            #     print(e)
+            #     self.tableWidget.setEnabled(False)
 
 
 class NewQalif(QtWidgets.QWidget):
@@ -244,7 +294,16 @@ class NewQalif(QtWidgets.QWidget):
         self.pushButton.clicked.connect(self.addReason)
         self.refreshreasons()
         self.refreshQlf()
+        self.back.clicked.connect(self.goback)
 
+
+    def closeEvent(self, event):
+        self.goback()
+
+    def goback(self):
+        self.rslt = RSLT()
+        self.rslt.show()
+        self.close()
     def eventFilter(self, s, e):
         if e.type() == QtCore.QEvent.MouseButtonPress:
             if s is self.rbtn:
