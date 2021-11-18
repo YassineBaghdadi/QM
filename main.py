@@ -21,30 +21,31 @@ class Login(QtWidgets.QWidget):
 
         self.cnx.clicked.connect(self.login)
 
+
     def login(self):
         cnx = conn()
         cur = cnx.cursor()
-        cur.execute(f'''select cmps from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
-        self.camps = cur.fetchone()[0]
-        if self.camps:
-            global CPMS
-            CPMS = [i for i in str(self.camps).split(".")]
-            print(f"cmps ; {CPMS}")
-            cur.execute(
-                f'''select id from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
-            global USER
-            USER = cur.fetchone()[0]
-            # self.main = Main()
-            # self.main.show()
-            self.rs = RSLT()
-            self.rs.show()
-            self.close()
-        else:
-            self.username.setText("")
-            self.passwrd.setText("")
+        if self.username.text() and self.passwrd.text():
+            cur.execute(f'''select cmps from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
+            self.camps = cur.fetchone()[0]
+            if self.camps:
+                global CPMS
+                CPMS = [i for i in str(self.camps).split(".")]
+                print(f"cmps ; {CPMS}")
+                cur.execute(
+                    f'''select id from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
+                global USER
+                USER = cur.fetchone()[0]
+                # self.main = Main()
+                # self.main.show()
+                self.rs = RSLT()
+                self.rs.show()
+                self.close()
+            else:
+                self.username.setText("")
+                self.passwrd.setText("")
         cur.close()
         cnx.close()
-
 
 #
 # class Main(QtWidgets.QWidget):
@@ -78,8 +79,6 @@ class Login(QtWidgets.QWidget):
 #         return super(Main, self).eventFilter(s, e)
 #
 
-
-
 class RSLT(QtWidgets.QWidget):
     def __init__(self):
         super(RSLT, self).__init__()
@@ -90,9 +89,6 @@ class RSLT(QtWidgets.QWidget):
         self.dateEdit.setDateTime(now)
         cnx = conn()
         cur = cnx.cursor()
-
-
-
         cur.execute(f"""select campname from camps where id {f'in {tuple(CPMS)}' if len(CPMS) > 1 else f'= {CPMS[0]}'}""")
         cc = cur.fetchall()
         self.camps = [i[0] for i in cc] if len(cc) >1 else cc[0]

@@ -1,4 +1,4 @@
-#
+
 #
 # import pymysql
 #
@@ -19,8 +19,16 @@
 
 
 #
-l = {'callReason': '4', 'user': 1, 'agent': '3', 'date': '17-11-2021', 'qlf': [{'2': {'ans': '1.0', 'note': 'asdasdasd'}}, {'3': {'ans': '2.0', 'note': 'asdasdasd'}}]}
+import sys
 
-for i in l["qlf"]:
-    for k in i.keys():
-        print(k)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QStandardItemModel
+from PyQt5.QtWidgets import QComboBox, QMainWindow, QWidget, QVBoxLayout, QApplication, QLineEdit, QListWidget, \
+    QCheckBox, QListWidgetItem
+
+l = {'callReason': '4', 'user': 1, 'agent': '3', 'date': '17-11-2021', 'qlf': [{'2': {'ans': '1.0', 'note': 'asdasdasd'}}, {'3': {'ans': '2.0', 'note': 'asdasdasd'}}]}
+#
+[print(i[[j for j in i.keys()][0]]["ans"]) for i in l["qlf"]]
+
+
+
