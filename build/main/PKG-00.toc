@@ -1,0 +1,40 @@
+('E:\\QM\\build\\main\\PKG-00.pkg',
+ {'BINARY': 1,
+  'DATA': 1,
+  'EXECUTABLE': 1,
+  'EXTENSION': 1,
+  'PYMODULE': 1,
+  'PYSOURCE': 1,
+  'PYZ': 0},
+ [('PYZ-00.pyz', 'E:\\QM\\build\\main\\PYZ-00.pyz', 'PYZ'),
+  ('struct', 'E:\\QM\\build\\main\\localpycos\\struct.pyo', 'PYMODULE'),
+  ('pyimod01_os_path',
+   'C:\\Users\\Yassine '
+   'Baghdadi\\AppData\\Roaming\\Python\\Python39\\site-packages\\PyInstaller\\loader\\pyimod01_os_path.pyc',
+   'PYMODULE'),
+  ('pyimod02_archive',
+   'C:\\Users\\Yassine '
+   'Baghdadi\\AppData\\Roaming\\Python\\Python39\\site-packages\\PyInstaller\\loader\\pyimod02_archive.pyc',
+   'PYMODULE'),
+  ('pyimod03_importers',
+   'C:\\Users\\Yassine '
+   'Baghdadi\\AppData\\Roaming\\Python\\Python39\\site-packages\\PyInstaller\\loader\\pyimod03_importers.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Users\\Yassine '
+   'Baghdadi\\AppData\\Roaming\\Python\\Python39\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'C:\\Users\\Yassine '
+   'Baghdadi\\AppData\\Roaming\\Python\\Python39\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('pyi_rth_pyqt5',
+   'C:\\Users\\Yassine '
+   'Baghdadi\\AppData\\Roaming\\Python\\Python39\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyqt5.py',
+   'PYSOURCE'),
+  ('main', 'E:\\QM\\main.py', 'PYSOURCE'),
+  ('main.exe.manifest', 'E:\\QM\\build\\main\\main.exe.manifest', 'BINARY')],
+ True,
+ False,
+ False,
+ [])

@@ -150,7 +150,7 @@ class RSLT(QtWidgets.QWidget):
             if c:
                 print("$"*100)
                 print(c)
-                self.qlf = [str(i[0]) for i in c] if len(c) > 1 else [str(c[0][0])]
+                self.qlf = [f"Qualification ID : {i[0]}" for i in c] if len(c) > 1 else [f"Qualification ID : {c[0][0]}"]
                 print(self.qlf)
                 self.qlfs.setEnabled(True)
                 self.qlfs.addItems(self.qlf)
@@ -196,14 +196,14 @@ class RSLT(QtWidgets.QWidget):
 
                     cnx = conn()
                     cur = cnx.cursor()
-                    qq = f"""select q.qname, r.r from qalif q inner join rslt r on r.idq = q.id inner join qualification qq on r.idqlf = qq.id inner join users u on qq.iduser = u.id where qq.idagent = {str(self.ag.currentText()).split('-')[0]} and qq.id = {self.qlfs.currentText()};"""
+                    qq = f"""select q.qname, r.r from qalif q inner join rslt r on r.idq = q.id inner join qualification qq on r.idqlf = qq.id inner join users u on qq.iduser = u.id where qq.idagent = {str(self.ag.currentText()).split('-')[0]} and qq.id = {str(self.qlfs.currentText()).split(" : ")[1]};"""
                     print(f'{"#"*100}\n{qq}')
                     cur.execute(qq)
 
                     data = cur.fetchall()
                     if data:
                         infos = []
-                        cur.execute(f'''select r, idq from rslt where idqlf = {self.qlfs.currentText()}''')
+                        cur.execute(f'''select r, idq from rslt where idqlf = {str(self.qlfs.currentText()).split(" : ")[1]}''')
                         output = cur.fetchall()
                         allRsltPoints = [float(i[0]) for i in output]
                         # infos.append(allRsltPoints)
@@ -217,7 +217,7 @@ class RSLT(QtWidgets.QWidget):
 
                         saccomPercentage = f"{str(round((ttlGain/ttlEligible) * 100, 2))}%"
                         infos.append(saccomPercentage)
-                        qu = f'''select cr.reason, u.fullname, qq.qdate from callReasons cr inner join qualification qq on qq.reason = cr.id inner join users u on qq.iduser = u.id where qq.id = {self.qlfs.currentText()}'''
+                        qu = f'''select cr.reason, u.fullname, qq.qdate from callReasons cr inner join qualification qq on qq.reason = cr.id inner join users u on qq.iduser = u.id where qq.id = {str(self.qlfs.currentText()).split(" : ")[1]}'''
                         print(qu)
                         cur.execute(qu)
                         dt = cur.fetchone()
@@ -270,8 +270,8 @@ class NewQalif(QtWidgets.QWidget):
 
         self.lbtn.setPixmap(QtGui.QPixmap('src/img/left.png'))
         self.lbtn.setScaledContents(True)
-        self.rbtn.setPixmap(QtGui.QPixmap('src/img/right.png'))
-        self.rbtn.setScaledContents(True)
+        # self.rbtn.setPixmap(QtGui.QPixmap('src/img/right.png'))
+        # self.rbtn.setScaledContents(True)
         self.rbtn.installEventFilter(self)
         self.lbtn.installEventFilter(self)
 
@@ -319,6 +319,19 @@ class NewQalif(QtWidgets.QWidget):
                 if currentIndx != 0:
                     self.label_3.setText(self.qlfs[currentIndx - 1])
                     self.refreshQlf()
+        if e.type() == QtCore.QEvent.MouseButtonDblClick:
+
+            if s is self.rbtn:
+
+                currentIndx = int(self.qlfs.index(str(self.label_3.text())))
+                self.label_3.setText(self.qlfs[-1])
+                self.refreshQlf()
+
+            if s is self.lbtn:
+
+                currentIndx = int(self.qlfs.index(str(self.label_3.text())))
+                self.label_3.setText(self.qlfs[0])
+                self.refreshQlf()
 
 
         return super(NewQalif, self).eventFilter(s, e)
@@ -333,19 +346,24 @@ class NewQalif(QtWidgets.QWidget):
         self.comboBox_2.clear()
         self.comboBox_2.addItems(items)
         if "qlf" in self.ansers:
+
             if  any(str(self.label_3.text()).split("-")[0] in i for i in self.ansers["qlf"]):
                 # self.comboBox_2.setCurrentIndex(items.index(self.ansers["qlf"][self.ansers["qlf"].index(str(self.label_3.text()).split("-")[0])]["ans"]))
                 for i in self.ansers["qlf"]:
                     for k in i.keys():
                         if k == str(self.label_3.text()).split("-")[0]:
+                            self.label_2.setText("(saved)")
                             self.comboBox_2.setCurrentIndex(items.index(i[k]["ans"]))
                             self.textEdit.setPlainText(i[k]["note"])
+                        else:
+                            self.label_2.setText("")
 
 
                 # self.textEdit.setPlainText(self.ansers["qlf"][str(self.label_3.text()).split("-")[0]]["note"])
             else:
                 self.comboBox_2.setCurrentIndex(items.index("0.0"))
                 self.textEdit.setPlainText("")
+                self.label_2.setText("")
 
         self.submit.setEnabled(True if 'qlf' in self.ansers else False)
 
@@ -407,9 +425,14 @@ class NewQalif(QtWidgets.QWidget):
     def nextq(self):
 
         qlfID = str(self.label_3.text()).split("-")[0]
-        self.ansers["qlf"].append(
-            {qlfID: {"ans": self.comboBox_2.currentText(), "note": self.textEdit.toPlainText(), }})
+        savedAns = [[k for k in  i.keys()][0] for i in self.ansers["qlf"]]
+        if qlfID not in savedAns:
+            self.ansers["qlf"].append(
+                {qlfID: {"ans": self.comboBox_2.currentText(), "note": self.textEdit.toPlainText(), }})
+        else:
+            self.ansers["qlf"][savedAns.index(qlfID)][qlfID] = {"ans": self.comboBox_2.currentText(), "note": self.textEdit.toPlainText(), }
 
+        print([[k for k in  i.keys()][0] for i in self.ansers["qlf"]])
         print(self.ansers)
         currentIndx = int(self.qlfs.index(str(self.label_3.text())))
         if currentIndx != len(self.qlfs) - 1:
@@ -471,13 +494,7 @@ class NewQalif(QtWidgets.QWidget):
                         )""")
                     self.cnx.commit()
 
-
-
-
-
-
-
-
+            QtWidgets.QMessageBox.about(self, "Qualification Saved Successfully ", f"The Qualification save with the ID : {qid}.")
 
 
 

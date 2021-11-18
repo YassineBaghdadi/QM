@@ -204,6 +204,27 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_3">
                <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="maximumSize">
+                  <size>
+                   <width>50</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <italic>true</italic>
+                   <underline>false</underline>
+                   <strikeout>false</strikeout>
+                   <kerning>false</kerning>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QLabel" name="label_3">
                  <property name="font">
                   <font>
@@ -294,11 +315,17 @@
             <height>100</height>
            </size>
           </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
           <property name="cursor">
            <cursorShape>PointingHandCursor</cursorShape>
           </property>
           <property name="text">
-           <string>TextLabel</string>
+           <string>Skip This QST</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
