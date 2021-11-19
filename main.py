@@ -1,3 +1,4 @@
+import calendar
 
 import pymysql, datetime, sys, os, random, string, numpy as np
 from PyQt5 import QtGui, QtWidgets, uic, QtCore
@@ -10,6 +11,92 @@ def conn() :
 
 CPMS = []
 USER = None
+
+
+
+def extraction():
+    cnx = conn()
+    cur = cnx.cursor()
+    extractionsData = []
+
+    cur.execute(f'''select concat(a.fname, " ", a.lname), cr.reason, u.fullname, qq.calldate, qq.qdate, qq.accountNumber, qq.phoneNumber, qq.callLen, qq.id from agents a 
+                        inner join qualification qq on qq.idagent = a.id 
+                        inner join users u on qq.iduser = u.id 
+                        inner join callReasons cr on qq.reason = cr.id;
+    ''')
+    data = [[c for c in r] for r in cur.fetchall()]
+    for i in data:
+        disct = {'Qualification ID': '',
+                 'Employee Name': '',
+                 'Call reason': '',
+                 'QM Officer': '',
+                 'Call Date': '',
+                 'Evaluation Month': '',
+                 'Evaluation date': '',
+                 'Percentage Saccom': '',
+                 'Account number': '',
+                 'Phone Number': '',
+                 'Call length': '',
+                 'Proper Greeting (Yes/No)': '',
+                 "Restate Customer's Needs (Yes/Some/No)": '',
+                 'Show genuine Empathy (Yes/Some/No)': '',
+                 'Show ownership To client (Yes/Some/No)': '',
+                 "Verified Customer's vital information (Yes/Some/No)": '',
+                 'Confirm Email (use as a security question?) (Yes/No)': '',
+                 "Reconfirm Customer's Call back number (Yes/No)": '',
+                 "Understanding Client's current situation from Salesforce": '',
+                 'Permission to proceed with questions*(Yes/No)': '',
+                 'Ask good relevant questions (Yes/Some/No)': '',
+                 'Transition and probing for needs* (Yes/No)': '',
+                 'Present a Solution (Yes/Some/No)': '',
+                 'Present added value (upselling)* (Yes/No)': '',
+                 'overcoming rejection (Rejection to their solution) (Yes/No)': '',
+                 'Summarize Actions during call (Yes/Some/No)': '',
+                 'Reaffirm with client choice or solution (Yes/No)': '',
+                 'End call with appreciation for customer loyality/sincere close (Yes/Some/No)': '',
+                 'Clear and Accurate documentation with concise notes (Yes/Some/No)': '',
+                 'Accurate information provided': '',
+                 'All details pretained were provided - points to mention, Dates times and next steps': '',
+                 'Adhere to eligibility and policy details (Yes/Some/No)': '',
+                 'All Transactions were completed accurately and following correct process': '',
+                 'Proper Tone (Yes/No)': '', 'Following Best practice guidlines for hold and mute* (Yes/No)': '',
+                 'Following best practice guidlines for transfer call (Yes/No)': '',
+                 'Total Gain': '',
+                 'Total Eligible': '',
+                 'TOTAL': '',
+                 'Note': ''}
+        disct["Qualification ID"] = i[-1]
+        disct["Employee Name"] = i[0]
+        disct["Call reason"] = i[1]
+        disct["QM Officer"] = i[2]
+        disct["Call Date"] = i[3]
+        disct["Evaluation Month"] = calendar.month_name[int(str(i[4]).split('-')[1])]
+        disct["Evaluation date"] = i[4]
+        disct["Account number"] = i[5]
+        disct["Phone Number"] = i[6]
+        disct["Call length"] = i[7]
+        cur.execute(
+            f'''select q.qname, q.ranger, r.r, r.note from rslt r inner join qalif q on r.idq = q.id where r.idqlf = {i[-1]}''')
+        ttlNote = ""
+        ttGain = 0
+        ttElj = 0
+        rts = [[c for c in r] for r in cur.fetchall()]
+        for j in rts:
+            disct[j[0]] = j[2]
+            ttlNote += f"{j[3]} , " if j[3] else ''
+            ttGain += float(j[2])
+            ttElj += float(str(j[1]).split(".")[1])
+        disct["Note"] = ttlNote
+        disct["Total Gain"] = ttGain
+        disct["Total Eligible"] = ttElj
+        disct["Percentage Saccom"] = (ttGain / ttElj) * 100
+        extractionsData.append(disct)
+
+    cnx.close()
+
+    print(extractionsData)
+
+
 class Login(QtWidgets.QWidget):
     def __init__(self):
         super(Login, self).__init__()
@@ -25,25 +112,29 @@ class Login(QtWidgets.QWidget):
     def login(self):
         cnx = conn()
         cur = cnx.cursor()
-        if self.username.text() and self.passwrd.text():
-            cur.execute(f'''select cmps from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
-            self.camps = cur.fetchone()[0]
-            if self.camps:
-                global CPMS
-                CPMS = [i for i in str(self.camps).split(".")]
-                print(f"cmps ; {CPMS}")
-                cur.execute(
-                    f'''select id from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
-                global USER
-                USER = cur.fetchone()[0]
-                # self.main = Main()
-                # self.main.show()
-                self.rs = RSLT()
-                self.rs.show()
-                self.close()
-            else:
-                self.username.setText("")
-                self.passwrd.setText("")
+        try:
+            if self.username.text() and self.passwrd.text():
+                cur.execute(f'''select cmps from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
+                self.camps = cur.fetchone()[0]
+                if self.camps:
+                    global CPMS
+                    CPMS = [i for i in str(self.camps).split(".")]
+                    print(f"cmps ; {CPMS}")
+                    cur.execute(
+                        f'''select id from users where username like "{self.username.text()}" and pssword like "{self.passwrd.text()}"''')
+                    global USER
+                    USER = cur.fetchone()[0]
+                    # self.main = Main()
+                    # self.main.show()
+                    self.rs = RSLT()
+                    self.rs.show()
+                    self.close()
+                else:
+                    self.username.setText("")
+                    self.passwrd.setText("")
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, f"Log in Failed", f"Invalid data or there is some error : {e}")
+
         cur.close()
         cnx.close()
 
@@ -107,7 +198,7 @@ class RSLT(QtWidgets.QWidget):
 
         cur.close()
         cnx.close()
-    #
+
     # def getQlfs(self):
     #     if self.ag.currentIndex() == 0:
     #         self.newR.setEnabled(False)
@@ -136,26 +227,28 @@ class RSLT(QtWidgets.QWidget):
     def getQlfs(self):
         cnx = conn()
         cur = cnx.cursor()
-        if self.ag.currentIndex() != 0 and self.ag.isEnabled():
-            self.newR.setEnabled(True)
-            self.qlfs.clear()
-            q = f"""select id from qualification where idagent = {str(self.ag.currentText()).split('-')[0]} and qdate like '{self.dateEdit.date().toPyDate().strftime('%d-%m-%Y')}'"""
-            print(q)
-            cur.execute(q)
-            c = cur.fetchall()
-            if c:
-                print("$"*100)
-                print(c)
-                self.qlf = [f"Qualification ID : {i[0]}" for i in c] if len(c) > 1 else [f"Qualification ID : {c[0][0]}"]
-                print(self.qlf)
-                self.qlfs.setEnabled(True)
-                self.qlfs.addItems(self.qlf)
-        else:
-            self.newR.setEnabled(False)
-            self.qlfs.clear()
-            self.qlfs.setEnabled(False)
-            self.tableWidget.clear()
+        try:
 
+            if self.ag.currentIndex() != 0 and self.ag.isEnabled() and len([i for i in str(self.ag.currentText()).split('-')]):
+                self.newR.setEnabled(True)
+                self.qlfs.clear()
+                q = f"""select id from qualification where idagent = {str(self.ag.currentText()).split('-')[0]} and qdate like '{self.dateEdit.date().toPyDate().strftime('%d-%m-%Y')}'"""
+                print(q)
+                cur.execute(q)
+                c = cur.fetchall()
+                if c:
+                    print("$"*100)
+                    print(c)
+                    self.qlf = [f"Qualification ID : {i[0]}" for i in c] if len(c) > 1 else [f"Qualification ID : {c[0][0]}"]
+                    print(self.qlf)
+                    self.qlfs.setEnabled(True)
+                    self.qlfs.addItems(self.qlf)
+            else:
+                self.newR.setEnabled(False)
+                self.qlfs.clear()
+                self.qlfs.setEnabled(False)
+                self.tableWidget.clear()
+        except:...
         self.refresh()
         cur.close()
         cnx.close()
@@ -163,15 +256,17 @@ class RSLT(QtWidgets.QWidget):
     def getAgents(self):
         cnx = conn()
         cur = cnx.cursor()
+        self.ag.setCurrentIndex(0)
         if self.cm.currentIndex() != 0:
             self.ag.clear()
             q =f"""select concat(id, '-', fname, ' ', lname) as fullName from agents where camp = (select id from camps where campname like "{self.cm.currentText()}")"""
             print(q)
             cur.execute(q)
             c = cur.fetchall()
-            self.agents = [i[0] for i in c] if len(c) >1 else [c[0]]
+            self.agents = ["choose Agent ..."]+[i[0] for i in c] if len(c) >1 else ["choose Agent ...", c[0][0]]
+            # self.agents.insert(0, )
+            print("@"*100)
             print(self.agents)
-            self.agents.insert(0, "choose Agent ...")
             self.ag.addItems(self.agents)
             self.ag.setEnabled(True)
         else:
@@ -186,18 +281,21 @@ class RSLT(QtWidgets.QWidget):
         if self.ag.currentText() not in self.agents or self.cm.currentText() not in self.camps :
             self.tableWidget.setEnabled(False)
         else:
-            try:
+            # try:
                 if self.ag.currentIndex() != 0 and self.qlfs.currentText():
                     self.tableWidget.setEnabled(True)
 
                     cnx = conn()
                     cur = cnx.cursor()
-                    qq = f"""select q.qname, r.r from qalif q inner join rslt r on r.idq = q.id inner join qualification qq on r.idqlf = qq.id inner join users u on qq.iduser = u.id where qq.idagent = {str(self.ag.currentText()).split('-')[0]} and qq.id = {str(self.qlfs.currentText()).split(" : ")[1]};"""
+                    qq = f"""select q.qname, r.r, r.note from qalif q inner join rslt r on r.idq = q.id inner join qualification qq on r.idqlf = qq.id inner join users u on qq.iduser = u.id where qq.idagent = {str(self.ag.currentText()).split('-')[0]} and qq.id = {str(self.qlfs.currentText()).split(" : ")[1]};"""
                     print(f'{"#"*100}\n{qq}')
                     cur.execute(qq)
 
                     data = cur.fetchall()
+                    print(f"{'@'*100}\n{bool(data)}")
                     if data:
+
+                        print(data)
                         infos = []
                         cur.execute(f'''select r, idq from rslt where idqlf = {str(self.qlfs.currentText()).split(" : ")[1]}''')
                         output = cur.fetchall()
@@ -206,14 +304,16 @@ class RSLT(QtWidgets.QWidget):
                         ttlGain = sum(allRsltPoints)
                         infos.append(ttlGain)
                         allQansewred = [i[1] for i in output]
-                        cur.execute(f'''select ranger from qalif where id in {tuple(allQansewred)}''')
+                        qqr = f'''select ranger from qalif where id{f" in {tuple(allQansewred)}" if len(allQansewred) > 1 else f" = {allQansewred[0]}"}'''
+                        print(qqr)
+                        cur.execute(qqr)
                         ttlEligible = sum([float(str(i[0]).split(".")[1]) for i in cur.fetchall()])
                         infos.append(ttlEligible)
 
 
                         saccomPercentage = f"{str(round((ttlGain/ttlEligible) * 100, 2))}%"
                         infos.append(saccomPercentage)
-                        qu = f'''select cr.reason, u.fullname, qq.qdate from callReasons cr inner join qualification qq on qq.reason = cr.id inner join users u on qq.iduser = u.id where qq.id = {str(self.qlfs.currentText()).split(" : ")[1]}'''
+                        qu = f'''select cr.reason, u.fullname, qq.qdate, qq.calldate, qq.accountNumber, qq.phoneNumber, qq.callLen from callReasons cr inner join qualification qq on qq.reason = cr.id inner join users u on qq.iduser = u.id where qq.id = {str(self.qlfs.currentText()).split(" : ")[1]}'''
                         print(qu)
                         cur.execute(qu)
                         dt = cur.fetchone()
@@ -223,11 +323,19 @@ class RSLT(QtWidgets.QWidget):
                         infos.append(qualifier)
                         date = dt[2]
                         infos.append(date)
+                        calldate = dt[3]
+                        infos.append(calldate)
+                        accN = dt[4]
+                        infos.append(accN)
+                        phN = dt[5]
+                        infos.append(phN)
+                        cLen = dt[6]
+                        infos.append(cLen)
 
                         self.tableWidget_2.clear()
                         self.tableWidget_2.setColumnCount(len(infos))
                         self.tableWidget_2.setRowCount(1)
-                        self.tableWidget_2.setHorizontalHeaderLabels("Total Gain.Total Eligible.Saccom Percentage.Call Reason.User Qualifier.Qualification Date".split('.'))
+                        self.tableWidget_2.setHorizontalHeaderLabels("Total Gain.Total Eligible.Saccom Percentage.Call Reason.User Qualifier.Qualification Date.Call Date.Account Number.Phone Number.Call length".split('.'))
                         [self.tableWidget_2.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch) for i in range(len(infos))]
 
                         [self.tableWidget_2.setItem(0,c, QtWidgets.QTableWidgetItem(str(infos[c])))for c in range(len(infos))]
@@ -236,7 +344,7 @@ class RSLT(QtWidgets.QWidget):
                         self.tableWidget.clear()
                         self.tableWidget.setColumnCount(len(data[0]))
                         self.tableWidget.setRowCount(len(data))
-                        self.tableWidget.setHorizontalHeaderLabels("Qualification.Result".split('.'))
+                        self.tableWidget.setHorizontalHeaderLabels("Qualification.Result.Note".split('.'))
                         [self.tableWidget.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch) for i in range(len(data[0]))]
 
                         for r in range(len(data)):
@@ -250,9 +358,9 @@ class RSLT(QtWidgets.QWidget):
                 else:
                     self.tableWidget.clear()
                     self.tableWidget_2.clear()
-            except :
-                    self.tableWidget.clear()
-                    self.tableWidget_2.clear()
+            # except :
+            #         self.tableWidget.clear()
+            #         self.tableWidget_2.clear()
             # except Exception as e:
             #     print(e)
             #     self.tableWidget.setEnabled(False)
@@ -291,6 +399,8 @@ class NewQalif(QtWidgets.QWidget):
         self.refreshreasons()
         self.refreshQlf()
         self.back.clicked.connect(self.goback)
+        now = datetime.datetime.now()
+        self.dateEdit.setDateTime(now)
 
 
     def closeEvent(self, event):
@@ -300,6 +410,8 @@ class NewQalif(QtWidgets.QWidget):
         self.rslt = RSLT()
         self.rslt.show()
         self.close()
+
+
     def eventFilter(self, s, e):
         if e.type() == QtCore.QEvent.MouseButtonPress:
             if s is self.rbtn:
@@ -365,31 +477,45 @@ class NewQalif(QtWidgets.QWidget):
 
 
     def addReason(self):
-        if self.lineEdit.text():
-            self.cur.execute(f'select id from callReasons where reason like "{str(self.lineEdit.text()).strip()}"')
-            try:
-                if not self.cur.fetchone()[0]:
-                    self.cur.execute(f'''insert into callReasons(reason) value("{str(self.lineEdit.text()).strip()}")''')
-                    self.cnx.commit()
-                    self.refreshreasons()
-                    self.lineEdit.setText('')
-            except:
-                self.cur.execute(f'''insert into callReasons(reason) value("{str(self.lineEdit.text()).strip()}")''')
-                self.cnx.commit()
-                self.refreshreasons()
-                self.lineEdit.setText('')
+        r, d =QtWidgets.QInputDialog.getText(
+             self, 'Add new reason to database', 'Enter the new Call Reason :')
+        if d:
+            print(r)
 
-    def refreshreasons(self):
+        if d:
+            if r:
+                self.cur.execute(f'select count(id) from callReasons where reason like "{str(r).strip()}"')
+                rr = self.cur.fetchone()[0]
+                if not rr:
+                        self.cur.execute(f'''insert into callReasons(reason) value("{str(r).strip()}")''')
+                        self.cnx.commit()
+                        self.refreshreasons(c=True)
+                else:
+                    QtWidgets.QMessageBox.about(self, "Failed to add :", "This Reason already exists.")
+            else:
+                    QtWidgets.QMessageBox.about(self, "Failed to add :", "Invalid input")
+
+
+    def refreshreasons(self, c = None):
         self.comboBox.clear()
         self.cur.execute(f'''select concat(id, "-", reason) from callReasons''')
-        self.comboBox.addItems(["Call Reason ..."]+[i[0] for i in self.cur.fetchall()])
+        items = ["Call Reason ..."]+[i[0] for i in self.cur.fetchall()]
+        self.comboBox.addItems(items)
+        if c:
+            self.comboBox.setCurrentIndex(len(items)-1)
 
     def startTheQlf(self):
         self.ansers["callReason"] = str(self.comboBox.currentText()).split("-")[0]
         self.ansers["user"] = USER
         self.ansers["agent"] = self.agent
         self.ansers["date"] = datetime.datetime.today().strftime('%d-%m-%Y')
+        self.ansers["calldate"] = self.dateEdit.date().toPyDate().strftime('%d-%m-%Y')
+        self.ansers["accountNumber"] = self.accN.text()
+        self.ansers["phone"] = self.PhN.text()
+        self.ansers["calllen"] = self.CN.text()
         self.ansers["qlf"] = []
+
+
 
 
 
@@ -473,11 +599,15 @@ class NewQalif(QtWidgets.QWidget):
             QtWidgets.QMessageBox.about(self, "you have to complete all the important elements ", msg)
 
         else:
-            self.cur.execute(f"""insert into qualification(iduser, idagent, qdate, reason) values(
+            self.cur.execute(f"""insert into qualification(iduser, idagent, qdate, reason, calldate, accountNumber, phoneNumber, callLen) values(
                         {self.ansers["user"]},
                         {self.ansers["agent"]},
                         "{datetime.datetime.today().strftime('%d-%m-%Y')}",
-                        {self.ansers["callReason"]}
+                        {self.ansers["callReason"]},
+                        "{self.ansers["calldate"]}",
+                        "{self.ansers["accountNumber"]}",
+                        "{self.ansers["phone"]}",
+                        "{self.ansers["calllen"]}"
             
             )""")
             self.cnx.commit()
@@ -491,6 +621,9 @@ class NewQalif(QtWidgets.QWidget):
                     self.cnx.commit()
 
             QtWidgets.QMessageBox.about(self, "Qualification Saved Successfully ", f"The Qualification save with the ID : {qid}.")
+            # self.rsts = RSLT()
+            # self.rsts.show()
+            self.close()
 
 
 

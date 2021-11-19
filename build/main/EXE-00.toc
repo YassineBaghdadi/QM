@@ -41,7 +41,7 @@
  [],
  False,
  False,
- 1637248690,
+ 1637334090,
  [('runw.exe',
    'C:\\Users\\Yassine '
    'Baghdadi\\AppData\\Roaming\\Python\\Python39\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\runw.exe',

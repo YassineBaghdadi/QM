@@ -1,0 +1,39 @@
+Employee Name
+Call reason
+QM Officer
+Call Date
+Evaluation Month
+Evaluation date
+Percentage Saccom
+Account number
+Phone Number
+Call length
+Proper Greeting (Yes/No)
+Restate Customer's Needs (Yes/Some/No)
+Show genuine Empathy (Yes/Some/No)
+Show ownership To client (Yes/Some/No)
+Verified Customer's vital information (Yes/Some/No)
+Confirm Email (use as a security question?) (Yes/No)
+Reconfirm Customer's Call back number (Yes/No)
+Understanding Client's current situation from Salesforce
+Permission to proceed with questions*(Yes/No)
+Ask good relevant questions (Yes/Some/No)
+Transition and probing for needs* (Yes/No)
+Present a Solution (Yes/Some/No)
+Present added value (upselling)* (Yes/No)
+overcoming rejection (Rejection to their solution) (Yes/No)
+Summarize Actions during call (Yes/Some/No)
+Reaffirm with client choice or solution (Yes/No)
+End call with appreciation for customer loyality/sincere close (Yes/Some/No)
+Clear and Accurate documentation with concise notes (Yes/Some/No)
+Accurate information provided
+All details pretained were provided - points to mention, Dates times and next steps
+Adhere to eligibility and policy details (Yes/Some/No)
+All Transactions were completed accurately and following correct process
+Proper Tone (Yes/No)
+Following Best practice guidlines for hold and mute* (Yes/No)
+Following best practice guidlines for transfer call (Yes/No)
+Total Gain
+Total Eligible
+TOTAL
+Note
