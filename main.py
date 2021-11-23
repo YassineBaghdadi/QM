@@ -1,5 +1,7 @@
 import calendar
+import shutil
 
+import openpyxl
 import pymysql, datetime, sys, os, random, string, numpy as np
 from PyQt5 import QtGui, QtWidgets, uic, QtCore
 
@@ -13,17 +15,20 @@ CPMS = []
 USER = None
 
 
-
-def extraction():
+def extraction(self, agents, fdate, tdate ):
     cnx = conn()
     cur = cnx.cursor()
     extractionsData = []
+    print(f'agents \n {agents}')
 
-    cur.execute(f'''select concat(a.fname, " ", a.lname), cr.reason, u.fullname, qq.calldate, qq.qdate, qq.accountNumber, qq.phoneNumber, qq.callLen, qq.id from agents a 
+    qq = f'''select concat(a.fname, " ", a.lname), cr.reason, u.fullname, qq.calldate, qq.qdate, qq.accountNumber, qq.phoneNumber, qq.callLen, qq.id from agents a 
                         inner join qualification qq on qq.idagent = a.id 
                         inner join users u on qq.iduser = u.id 
-                        inner join callReasons cr on qq.reason = cr.id;
-    ''')
+                        inner join callReasons cr on qq.reason = cr.id where a.id {f'in {tuple(agents)}' if len(agents) > 1 else f'= {agents[0]}'} and qq.qdate >= "{fdate}" and qq.qdate <= "{tdate}";
+    '''
+    print(qq)
+    cur.execute(qq)
+
     data = [[c for c in r] for r in cur.fetchall()]
     for i in data:
         disct = {'Qualification ID': '',
@@ -63,8 +68,9 @@ def extraction():
                  'Following best practice guidlines for transfer call (Yes/No)': '',
                  'Total Gain': '',
                  'Total Eligible': '',
-                 'TOTAL': '',
+
                  'Note': ''}
+
         disct["Qualification ID"] = i[-1]
         disct["Employee Name"] = i[0]
         disct["Call reason"] = i[1]
@@ -89,10 +95,26 @@ def extraction():
         disct["Note"] = ttlNote
         disct["Total Gain"] = ttGain
         disct["Total Eligible"] = ttElj
-        disct["Percentage Saccom"] = (ttGain / ttElj) * 100
+        disct["Percentage Saccom"] = f"{round((ttGain / ttElj) * 100, 2)}%"
         extractionsData.append(disct)
 
     cnx.close()
+    # fileName = os.path.join(os.getcwd(), "testExtracion.xlsx")
+    fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save file ...", f"Extraxtion{datetime.datetime.today().strftime('%d-%m-%Y %H-%M-%S')}", "Excel Files (*.xlsx)")
+
+    if fileName:
+        shutil.copy2(os.path.join(os.getcwd(), "template.xlsx"), fileName)
+
+        wb_obj = openpyxl.load_workbook(fileName)
+        sh = wb_obj["ecoute_Saccom"]
+        currentR = 3
+        for agDict in extractionsData:
+            for x, k in enumerate(agDict.keys()):
+                cell = sh.cell(row=currentR, column=x+1)
+                cell.value = agDict[k]
+
+            currentR += 1
+        wb_obj.save(fileName)
 
     print(extractionsData)
 
@@ -198,6 +220,8 @@ class RSLT(QtWidgets.QWidget):
 
         cur.close()
         cnx.close()
+        self.dwa2.clicked.connect(self.likoliDa2)
+        self.dwa2.setEnabled(True)
 
     # def getQlfs(self):
     #     if self.ag.currentIndex() == 0:
@@ -213,6 +237,11 @@ class RSLT(QtWidgets.QWidget):
     #
     #         cnx.close()
     #
+
+    def likoliDa2(self):
+        self.HabaSawda = LhabaSawda()
+        self.HabaSawda.show()
+        self.close()
 
     def closeEvent(self, event):
         self.lgn = Login()
@@ -626,16 +655,91 @@ class NewQalif(QtWidgets.QWidget):
             self.close()
 
 
+class LhabaSawda(QtWidgets.QWidget):
+    def __init__(self):
+        super(LhabaSawda, self).__init__()
+        uic.loadUi(os.path.join(os.getcwd(), "ui", "extr.ui"), self)
+
+        now = datetime.datetime.now()
+        self.dateEdit.setDateTime(now)
+        self.dateEdit_2.setDateTime(now)
+
+        cnx = conn()
+        cur = cnx.cursor()
+        cur.execute("select concat(id, '-', fname, lname) as agent from agents")
+        self.agents = ["Choose Agent ..."]+[i[0] for i in cur.fetchall()]
+        # print(self.agents)
+        # self.comboBox.addItems(self.agents)
+        self.refr()
+        self.comboBox.currentIndexChanged.connect(lambda : self.add.setEnabled(False if self.comboBox.currentIndex() == 0 else True))
+
+        self.add.clicked.connect(self.addAg)
+        self.addAll.clicked.connect(self.addAllAg)
+        self.pushButton_2.clicked.connect(self.extractLkhra)
+        self.selectedAgents = []
+        cnx.close()
+        self.pushButton_3.clicked.connect(self.goback)
+
+
+    def closeEvent(self, event):
+        self.goback()
+
+    def goback(self):
+        self.rslt = RSLT()
+        self.rslt.show()
+        self.close()
+
+
+
+    def extractLkhra(self):
+        extraction(self=self, agents=self.selectedAgents, fdate=self.dateEdit.date().toPyDate().strftime('%d-%m-%Y'), tdate=self.dateEdit_2.date().toPyDate().strftime('%d-%m-%Y'))
+
+
+    def refr(self):
+
+        self.comboBox.clear()
+        self.comboBox.addItems(self.agents)
+        self.comboBox.setCurrentIndex(0)
+
+    def addAllAg(self):
+        for i in range(1, len(self.agents)+1):
+            self.comboBox.setCurrentIndex(1)
+            self.addAg()
+        self.pushButton_2.setEnabled(True)
+
+    def addAg(self):
+        cnx = conn()
+        cur = cnx.cursor()
+        id = str(self.comboBox.currentText()).split('-')[0]
+        if id:
+            dd = f"""select a.id, a.fname, a.lname, c.campname from agents a inner join camps c on a.camp = c.id where a.id = {id} """
+            print(dd)
+            cur.execute(dd)
+            data = [r for r in cur.fetchone()]
+            self.selectedAgents.append(data[0])
+            header = "Agent ID.First Name.Last Name.Campaign".split('.')
+            self.tableWidget.setColumnCount(len(header))
+
+            [self.tableWidget.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch) for i in range(len(header))]
+            self.tableWidget.setHorizontalHeaderLabels(header)
+            self.tableWidget.insertRow(0)
+            [self.tableWidget.setItem(0, c, QtWidgets.QTableWidgetItem(str(data[c]))) for c in range(len(data))]
+            self.agents.remove(self.comboBox.currentText())
+            self.refr()
+            self.pushButton_2.setEnabled(True)
+        else:
+            self.comboBox.setCurrentIndex(0)
+        cnx.close()
 
 
 if __name__ == '__main__':
-    print(sys.getrecursionlimit())
-    sys.setrecursionlimit(1500)
-    print(sys.getrecursionlimit())
+    # print(sys.getrecursionlimit())
+    # sys.setrecursionlimit(1500)
+    # print(sys.getrecursionlimit())
     app = QtWidgets.QApplication(sys.argv)
     screen = Login()
     # CPMS = ["1", "2", ]
     # USER = 1
-    # screen = NewQalif("3") #todo for the test
+    # screen = LhabaSawda() #todo for the test
     screen.show()
     sys.exit(app.exec_())

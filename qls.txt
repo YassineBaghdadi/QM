@@ -1,26 +1,25 @@
-Proper Greeting (Yes/No)
-Restate Customer's Needs (Yes/Some/No)
-Show genuine Empathy (Yes/Some/No)
-Show ownership To client (Yes/Some/No)
-Verified Customer's vital information (Yes/Some/No)
-Confirm Email (use as a security question?) (Yes/No)
-Reconfirm Customer's Call back number (Yes/No)
-Verified Customer's vital information (Yes/Some/No)
-Understanding Client's current situation from Salesforce
-Permission to proceed with questions*(Yes/No)
-Ask good relevant questions (Yes/Some/No)
-Transition and probing for needs* (Yes/No)
-Present a Solution (Yes/Some/No)
-Present added value (upselling)* (Yes/No)
-overcoming rejection (Rejection to their solution) (Yes/No)
-Summarize Actions during call (Yes/Some/No)
-Reaffirm with client choice or solution (Yes/No)
-End call with appreciation for customer loyality/sincere close (Yes/Some/No)
-Clear and Accurate documentation with concise notes (Yes/Some/No)
-Accurate information provided
-All details pretained were provided - points to mention, Dates times and next steps
-Adhere to eligibility and policy details (Yes/Some/No)
-All Transactions were completed accurately and following correct process
-Proper Tone (Yes/No)
-Following Best practice guidlines for hold and mute* (Yes/No)
-Following best practice guidlines for transfer call (Yes/No)
+Proper Greeting (Yes/No)#1#-5.1
+Restate Customer's Needs (Yes/Some/No)#1#0.5
+Show genuine Empathy (Yes/Some/No)#1#0.5
+Show ownership To client (Yes/Some/No)#1#0.3
+Confirm Email (use as a security question?) (Yes/No)#1#0.2
+Reconfirm Customer's Call back number (Yes/No)#1#0.2
+Verified Customer's vital information (Yes/Some/No)#1#-5.5
+Understanding Client's current situation from Salesforce#1#-5.10
+Permission to proceed with questions*(Yes/No)#0#0.1
+Ask good relevant questions (Yes/Some/No)#1#0.10
+Transition and probing for needs* (Yes/No)#0#0.2
+Present a Solution (Yes/Some/No)#1#0.5
+Present added value (upselling)* (Yes/No)#0#0.4
+overcoming rejection (Rejection to their solution) (Yes/No)#0#0.5
+Summarize Actions during call (Yes/Some/No)#1#0.5
+Reaffirm with client choice or solution (Yes/No)#0#0.1
+End call with appreciation for customer loyality/sincere close (Yes/Some/No)#1#0.4
+Clear and Accurate documentation with concise notes (Yes/Some/No)#1#-5.4
+Accurate information provided#1#-5.5
+All details pretained were provided - points to mention, Dates times and next steps#1#-5.5
+Adhere to eligibility and policy details (Yes/Some/No)#1#-5.5
+All Transactions were completed accurately and following correct process#1#-5.10
+Proper Tone (Yes/No)#1#-5.1
+Following Best practice guidlines for hold and mute* (Yes/No)#1#-5.2
+Following best practice guidlines for transfer call (Yes/No)#1#-5.1
