@@ -1,18 +1,46 @@
-import calendar
-import shutil
-
-import openpyxl
-import pymysql, datetime, sys, os, random, string, numpy as np
+import firebase_admin
+import pymysql, datetime, sys, os, random, string, numpy as np, openpyxl, shutil, calendar
 from PyQt5 import QtGui, QtWidgets, uic, QtCore
-
 from PyQt5.QtWidgets import QHeaderView
-
-
-def conn() :
-    return pymysql.Connect(host="10.73.200.200", user="qlfier", password="1234@@it.", database="QM")
+from firebase_admin import credentials, db
 
 CPMS = []
 USER = None
+HOST = ""
+
+def verifyIP():
+    global HOST
+    with open("ip.txt", "r") as f:
+        ip = f.read()
+    try:
+        cnx = pymysql.Connect(host="10.73.200.200", user="yassine", password="1234@@it.", database="QM")
+        HOST = "10.73.200.200"
+        cnx.close()
+    except:
+        cnx = pymysql.Connect(host=ip, user="yassine", password="1234@@it.", database="QM")
+
+        HOST = ip
+        cnx.close()
+    finally:
+
+        cred = credentials.Certificate("qmkey.json")
+        default_app = firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://qmserver-5e178-default-rtdb.firebaseio.com/'
+        })
+        newip = str(db.reference("ip"))
+        with open("ip.txt", "w") as f:
+            f.write(newip)
+
+        cnx = pymysql.Connect(host=newip, user="yassine", password="1234@@it.", database="QM")
+
+        HOST = newip
+        cnx.close()
+
+def conn():
+    return pymysql.Connect(host=HOST, user="yassine", password="1234@@it.", database="QM")
+
+
+
 
 
 def extraction(self, agents, fdate, tdate ):
@@ -115,7 +143,8 @@ def extraction(self, agents, fdate, tdate ):
 
             currentR += 1
         wb_obj.save(fileName)
-
+        QtWidgets.QMessageBox.about(self, "Extraction Done.", f"the data extracted to : {fileName}")
+        os.startfile(fileName)
     print(extractionsData)
 
 
@@ -377,7 +406,6 @@ class RSLT(QtWidgets.QWidget):
                         [self.tableWidget.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch) for i in range(len(data[0]))]
 
                         for r in range(len(data)):
-
                             for c in range(len(data[0])):
                                 self.tableWidget.setItem(r,c, QtWidgets.QTableWidgetItem(str(data[r][c])))
                     else:
@@ -607,7 +635,7 @@ class NewQalif(QtWidgets.QWidget):
         print(self.ansers)
         messedQ = []
 
-        self.cur.execute("select id from qalif where importent = 1")
+        self.cur.execute("select id from qalif where important = 1")
         importentQ = [int(i[0]) for i in self.cur.fetchall()]
 
         ansewred = []
@@ -693,6 +721,7 @@ class LhabaSawda(QtWidgets.QWidget):
 
     def extractLkhra(self):
         extraction(self=self, agents=self.selectedAgents, fdate=self.dateEdit.date().toPyDate().strftime('%d-%m-%Y'), tdate=self.dateEdit_2.date().toPyDate().strftime('%d-%m-%Y'))
+        self.goback()
 
 
     def refr(self):

@@ -5,34 +5,36 @@ import os
 import shutil
 
 import pymysql
-#
-cnx = pymysql.Connect(host="10.73.200.200", user="yassine", password="1234@@it.", database="QM")
-cur = cnx.cursor()
+with open("\\yassinebaghdadi-STM-server\\test\ip.txt", "r") as f:
+    ip = f.read()
 
-
-with open("qls.txt", "r") as f:
-    qls = [i.replace('\n', '') for i in f.readlines()]
-# qls = [i for i in set(qls)]
-for i in qls:
-    if i:
-        qname = i.split("#")[0]
-        imp = i.split("#")[1]
-        ran = i.split("#")[2]
-
-        cur.execute(f"""insert into qalif(qname, important, ranger)values("{qname}", "{imp}", "{ran}")""")
-        cnx.commit()
-
-
-cnx.close()
-
+# cnx = pymysql.Connect(host="yassinebaghdadi-STM-server", user="qlfier", password="1234@@it.", database="QMTestMourad")
+# cur = cnx.cursor()
 
 #
-import sys
+# with open("qls.txt", "r") as f:
+#     qls = [i.replace('\n', '') for i in f.readlines()]
+# # qls = [i for i in set(qls)]
+# for i in qls:
+#     if i:
+#         qname = i.split("#")[0]
+#         imp = i.split("#")[1]
+#         ran = i.split("#")[2]
+#
+#         cur.execute(f"""insert into qalif(qname, important, ranger)values("{qname}", "{imp}", "{ran}")""")
+#         cnx.commit()
+#
+#
+# cnx.close()
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QStandardItemModel
-from PyQt5.QtWidgets import QComboBox, QMainWindow, QWidget, QVBoxLayout, QApplication, QLineEdit, QListWidget, \
-    QCheckBox, QListWidgetItem
+
+#
+# import sys
+#
+# from PyQt5.QtCore import Qt
+# from PyQt5.QtGui import QStandardItemModel
+# from PyQt5.QtWidgets import QComboBox, QMainWindow, QWidget, QVBoxLayout, QApplication, QLineEdit, QListWidget, \
+#     QCheckBox, QListWidgetItem
 
 # l = {'callReason': '4', 'user': 1, 'agent': '3', 'date': '17-11-2021', 'qlf': [{'2': {'ans': '1.0', 'note': 'asdasdasd'}}, {'3': {'ans': '2.0', 'note': 'asdasdasd'}}]}
 # #
