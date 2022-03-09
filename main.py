@@ -126,6 +126,7 @@ def extraction(self, agents, fdate, tdate ):
         disct["Percentage Saccom"] = f"{round((ttGain / ttElj) * 100, 2)}%"
         extractionsData.append(disct)
 
+
     cnx.close()
     # fileName = os.path.join(os.getcwd(), "testExtracion.xlsx")
     fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save file ...", f"Extraxtion{datetime.datetime.today().strftime('%d-%m-%Y %H-%M-%S')}", "Excel Files (*.xlsx)")
@@ -145,6 +146,8 @@ def extraction(self, agents, fdate, tdate ):
         wb_obj.save(fileName)
         QtWidgets.QMessageBox.about(self, "Extraction Done.", f"the data extracted to : {fileName}")
         os.startfile(fileName)
+
+
     print(extractionsData)
 
 
@@ -156,8 +159,8 @@ class Login(QtWidgets.QWidget):
         self.label.setPixmap(QtGui.QPixmap('src/img/logo.png'))
         self.label.setScaledContents(True)
         self.camps = None
-
         self.cnx.clicked.connect(self.login)
+
 
 
     def login(self):
